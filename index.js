@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const { execSync } = require('child_process');
-const fs = require('fs');
+const fs = require('fs').promises;
 const knex = require('knex');
 
 const db = knex({
@@ -70,7 +70,7 @@ async function storePost(post) {
     const termsResults = await db.raw(termsQuery);
     const terms = termsResults[0] || [];
 
-    fs.writeFileSync(`posts/${dateShort}-${post.post_name}.md`, prepareContent(post, terms));
+    await fs.writeFile(`posts/${dateShort}-${post.post_name}.md`, prepareContent(post, terms));
     console.log(`✅ ${post.post_title}`);
 }
 
