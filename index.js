@@ -35,21 +35,24 @@ function prepareContent(post, terms) {
     const dateShort = date.toISOString().split('T')[0];
 
     const categories = terms.filter(t => t.taxonomy === 'category')
-        .map(t => `\n    - ${t.term_name}`)
+        .map(t => `\n  - ${t.term_name}`)
         .join('');
 
     const tags = terms.filter(t => t.taxonomy === 'post_tag')
-        .map(t => `\n    - ${t.term_name}`)
+        .map(t => `\n  - ${t.term_name}`)
         .join('');
 
+    post.post_title = post.post_title.replace(/'/g, "\\'");
+    post.description = post.description.replace(/'/g, "\\'");
+
     return `---
-title: "${post.post_title}"
+title: '${post.post_title}'
 url: ${post.post_name}
 date: ${dateShort}
 draft: false
-author: [${post.user_displayname}](/autor/${post.user_nicename}/)
+author: '[${post.user_displayname}](/autor/${post.user_nicename}/)'
 categories:${categories}
-description: "${post.description}"
+description: '${post.description}'
 tags:${tags}
 ---
 
