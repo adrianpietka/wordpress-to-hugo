@@ -1,13 +1,10 @@
 {
-  "name": "wodress2hugo",
+  "name": "wodress-to-hugo",
   "version": "1.0.0",
-  "description": "",
+  "description": "Fast way to migrate post from Wordpress to Hugo.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
+  "author": "Adrian Pietka <adrian@devenv.pl>",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.1",
     "knex": "^2.0.0",
