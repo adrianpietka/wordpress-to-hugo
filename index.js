@@ -43,7 +43,7 @@ function prepareContent(post, terms) {
         .join('');
 
     post.post_title = post.post_title.replace(/'/g, "\\'");
-    post.description = post.description.replace(/'/g, "\\'");
+    post.description = post.description && post.description.replace(/'/g, "\\'") || '';
 
     return `---
 title: '${post.post_title}'
