@@ -20,11 +20,15 @@ const prefix = process.env.DB_TABLE_PREFIX || 'wp_';
 const postQuery = `SELECT
         u.user_nicename as user_nicename,
         u.display_name as user_displayname,
-        m.meta_value as description,
+        m1.meta_value as seo_description,
+        m2.meta_value as seo_title,
+        m3.meta_value as seo_focus_keyword,
         p.*
     FROM ${prefix}posts p
         LEFT JOIN ${prefix}users u ON u.ID = p.post_author
-        LEFT JOIN ${prefix}postmeta m ON m.post_id = p.ID AND m.meta_key = '_yoast_wpseo_metadesc'
+        LEFT JOIN ${prefix}postmeta m1 ON m1.post_id = p.ID AND m1.meta_key = '_yoast_wpseo_metadesc'
+        LEFT JOIN ${prefix}postmeta m2 ON m2.post_id = p.ID AND m2.meta_key = '_yoast_wpseo_title'
+        LEFT JOIN ${prefix}postmeta m3 ON m3.post_id = p.ID AND m3.meta_key = '_yoast_wpseo_focuskw'
     WHERE
         p.post_status = 'publish'
         AND p.post_type = 'post'
@@ -33,6 +37,8 @@ const postQuery = `SELECT
 function prepareContent(post, terms) {
     const date = new Date(post.post_date_gmt);
     const dateShort = date.toISOString().split('T')[0];
+
+    const category = terms.filter(t => t.taxonomy === 'category').find(x => true);
 
     const categories = terms.filter(t => t.taxonomy === 'category')
         .map(t => `\n  - ${t.term_name}`)
@@ -43,17 +49,25 @@ function prepareContent(post, terms) {
         .join('');
 
     post.post_title = post.post_title.replace(/'/g, "\\'");
-    post.description = post.description && post.description.replace(/'/g, "\\'") || '';
+    post.seo_title = post.seo_title && post.seo_title.replace(/'/g, "\\'") || '';
+    post.seo_description = post.seo_description && post.seo_description.replace(/'/g, "\\'") || '';
+
+    post.post_content = post.post_content.replace(/alignleft/g, "align-left");
 
     return `---
 title: '${post.post_title}'
 url: ${post.post_name}
 date: ${dateShort}
-draft: false
-author: '[${post.user_displayname}](/autor/${post.user_nicename}/)'
+author: '${post.user_displayname}'
+category: '${category.term_name}'
 categories:${categories}
-description: '${post.description}'
 tags:${tags}
+focus_keyword: '${post.seo_focus_keyword || ''}'
+seo_title: '${post.seo_title || ''}'
+seo_description: '${post.seo_description || ''}'
+draft: false
+featured: false
+cover: default
 ---
 
 ${post.post_content}`;
