@@ -34,9 +34,25 @@ const postQuery = `SELECT
         AND p.post_type = 'post'
     ORDER BY p.post_date DESC`;
 
+// via: https://stackoverflow.com/a/48000411
+function urlify(url) {
+    return url.toString()               // Convert to string
+        .normalize('NFD')               // Change diacritics
+        .replace(/[\u0300-\u036f]/g,'') // Remove illegal characters
+        .replace(/\s+/g,'-')            // Change whitespace to dashes
+        .toLowerCase()                  // Change to lowercase
+        .replace(/&/g,'-and-')          // Replace ampersand
+        .replace(/[^a-z0-9\-]/g,'')     // Remove anything that is not a letter, number or dash
+        .replace(/-+/g,'-')             // Remove duplicate dashes
+        .replace(/^-*/,'')              // Remove starting dashes
+        .replace(/-*$/,'');             // Remove trailing dashes
+}
+
 function prepareContent(post, terms) {
     const date = new Date(post.post_date_gmt);
     const dateShort = date.toISOString().split('T')[0];
+
+    const author = urlify(post.user_displayname);
 
     const category = terms.filter(t => t.taxonomy === 'category').find(x => true);
 
@@ -48,6 +64,14 @@ function prepareContent(post, terms) {
         .map(t => `\n  - ${t.term_name}`)
         .join('');
 
+    let contentType = 'article';
+    
+    if (category.term_name === 'Podcast' || category.term_name === 'the:procast') {
+        contentType = 'podcast';
+    } else if (terms.filter(t => t.taxonomy === 'category').map(x => x.term_name).includes('Wideo')) {
+        contentType = 'youtube';
+    }
+
     post.post_title = post.post_title.replace(/'/g, "\\'");
     post.seo_title = post.seo_title && post.seo_title.replace(/'/g, "\\'") || '';
     post.seo_description = post.seo_description && post.seo_description.replace(/'/g, "\\'") || '';
@@ -58,7 +82,7 @@ function prepareContent(post, terms) {
 title: '${post.post_title}'
 url: ${post.post_name}
 date: ${dateShort}
-author: '${post.user_displayname}'
+author: '${author}'
 category: '${category.term_name}'
 categories:${categories}
 tags:${tags}
@@ -66,8 +90,7 @@ focus_keyword: '${post.seo_focus_keyword || ''}'
 seo_title: '${post.seo_title || ''}'
 seo_description: '${post.seo_description || ''}'
 draft: false
-featured: false
-cover: default
+content_type: '${contentType}'
 ---
 
 ${post.post_content}`;
